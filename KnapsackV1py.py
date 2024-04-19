@@ -100,19 +100,18 @@ def main():
     budget = float(input("Type in your budget i.e 30: "))
     # collect all products that are normally in the budget, or that after applying the max possible discount they are within the budget
     in_budget_products = my_csv[(my_csv[MRP_col] < budget) | ((my_csv[MRP_col] > budget) & (my_csv[Discount_col] < budget))]
-    # perfrom optimization
-    
+    # perfrom price optimization
+    # Given in_budget_products
+    #       Make a new PriceCol if Price is already over Budget
+    #       if SellPrice = MRP(DiscountPercentOff)
+    #       then Budget/MRP = OPTDiscount
+    #       KnapSackPrice = MRP*OPTDiscount
+    # 
+    # set the value to each product. 1. Ask the customer to rank their desired product category. Price range of prodcuts for that category
+    # this will get the value for us.  Set the values
+    # then get budget of the customer
+    # Perfrom DP integral KnapSack. 
+    # 1st prodcut %80 of budget, then other smaller items?
+    # just see what knapSack gives back?
 
 main()
-
-
-# Convert the column 'SellPrince' from string to float
-#sub_csv['SellPrice'] = sub_csv['SellPrice'].astype(float)
-# convert cents into dollarse
-#sub_csv['SellPrice'] = sub_csv['SellPrice']/100
-#print(sub_csv.head(10))
-#print(old_data)
-#print(type(old_data))
-
-#float(sub_csv['SellPrice'])/100
-#print(sub_csv.head(10))
