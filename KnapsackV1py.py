@@ -83,35 +83,74 @@ def getCSVFile(path):
     '''
     return pd.read_csv(path)
 
-def main():
-    # get the csv file
-    file_path = "FashionDataset.csv"
-    # create a pandas DataFrame using the csv file
-    my_csv = getCSVFile(file_path)
-    # specify the Market Retail Price column
-    MRP_col = 'MRPNum'
-    # perfom cents to dollar conversion on column of data
-    my_csv[MRP_col] = centsToDollarsCSV(my_csv, MRP_col)
+def convertCSVCenttoDollar(csvFile):
+    ''' 
+        A function what changes two columns,  MRPNum and SellPrice, from cents to dollars.
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: altered DataFame
+    '''
     # specify the Sell Price column with applied discounts
-    Discount_col = 'SellPrice'
+    MRP_col = "MRPNum"
+    Discount_col = "SellPrice"
     # perfom cents to dollar conversion on column of data
-    my_csv[Discount_col] = centsToDollarsCSV(my_csv, Discount_col)
+    csvFile[MRP_col] = centsToDollarsCSV(csvFile, MRP_col)
+    # perfom cents to dollar conversion on column of data
+    csvFile[Discount_col] = centsToDollarsCSV(csvFile, Discount_col)
+    return csvFile
+
+def productsInBudgetCSV(csvFile):
+    ''' 
+        A function that returns a DataFrame of products within the customer's budget
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: altered DataFame
+    '''
     # obtain budget from the user
     budget = float(input("Type in your budget i.e 30: "))
+    # specify the Sell Price column to compare discounts
+    MRP_col = "MRPNum"
+    Discount_col = "SellPrice"
     # collect all products that are normally in the budget, or that after applying the max possible discount they are within the budget
-    in_budget_products = my_csv[(my_csv[MRP_col] < budget) | ((my_csv[MRP_col] > budget) & (my_csv[Discount_col] < budget))]
-    # perfrom price optimization
+    in_budget_products = csvFile[(csvFile[MRP_col] <= budget) | (csvFile[Discount_col] < budget)]
+    # save to a new csv file
+    #in_budget_products.to_csv('FashionDatasetChanged.csv', header=True, index=True)
+    return in_budget_products
+
+def optimizedDiscountCSV(csvFile):
+    ''' 
+        A function that created a new column in the DataFrame that finds the 
+        optimial disconut given the user's budget.
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: altered DataFame
+    '''
     # Given in_budget_products
     #       Make a new PriceCol if Price is already over Budget
     #       if SellPrice = MRP(DiscountPercentOff)
     #       then Budget/MRP = OPTDiscount
     #       KnapSackPrice = MRP*OPTDiscount
     # 
+
+def main():
+    # do like a while loop, while not done shopping or something
+    # get the csv file
+    file_path = "FashionDataset.csv"
+    # create a pandas DataFrame using the csv file
+    my_csv = getCSVFile(file_path)
+    # convert relevant columns from cents to dollars
+    my_csv = convertCSVCenttoDollar(my_csv)
+    # get the budget of the user and sort for relavent products
+    customer_csv = productsInBudgetCSV(my_csv)
+    # perfrom price optimization on discount percentage and add info to a new column
+    customer_csv = optimizedDiscountCSV(customer_csv)
+
+
     # set the value to each product. 1. Ask the customer to rank their desired product category. Price range of prodcuts for that category
     # this will get the value for us.  Set the values
     # then get budget of the customer
     # Perfrom DP integral KnapSack. 
-    # 1st prodcut %80 of budget, then other smaller items?
+    # (next version, get knapscack running first)1st prodcut %80 of budget, then other smaller items?
     # just see what knapSack gives back?
 
 main()
