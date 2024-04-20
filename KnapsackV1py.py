@@ -4,6 +4,8 @@ import csv
 import os
 # read csv file with pandas library
 import pandas as pd
+# use numpy select with numpy library
+import numpy as np
 
 def learningPandasTest(csv_file):
     ''' 
@@ -115,12 +117,11 @@ def productsInBudgetCSV(csvFile):
     in_budget_products = csvFile[(csvFile[MRP_col] <= budget) | (csvFile[Discount_col] < budget)]
     # save to a new csv file
     #in_budget_products.to_csv('FashionDatasetChanged.csv', header=True, index=True)
-    return in_budget_products
+    return in_budget_products, budget
 
-def optimizedDiscountCSV(csvFile):
+def optimizedDiscountCSV(csvFile, budget):
     ''' 
-        A function that created a new column in the DataFrame that finds the 
-        optimial disconut given the user's budget.
+        A function that creates a new column in the DataFrame OPTDiscountPercentOff
         Outstanding task: implement this function so it's not hard coded.
         inputs: name of .csv file in current directory
         output: altered DataFame
@@ -128,9 +129,72 @@ def optimizedDiscountCSV(csvFile):
     # Given in_budget_products
     #       Make a new PriceCol if Price is already over Budget
     #       if SellPrice = MRP(DiscountPercentOff)
-    #       then Budget/MRP = OPTDiscount
-    #       KnapSackPrice = MRP*OPTDiscount
-    # 
+    #       then Budget/MRP = OPTDiscountPercentOff
+    #       and KnapSackPrice = MRP*OPTDiscountPercentOff
+    #       but then all KnapSackPrices will be the budget price
+    #       so just make them all the budget price
+    MRP_col = "MRPNum"
+    OPTDiscount_col = "inBudgetPrice"
+    # create a list of conditions 
+    conditions = [
+        csvFile[MRP_col] <= budget,
+        csvFile[MRP_col] > budget
+    ]
+    # create a list of the valyes we want to assign for each condition
+    # if already in budget, keep the price, else, make it the max budget
+    values = [csvFile[MRP_col], budget]
+    # perfom cents to dollar conversion on column of data
+    csvFile[OPTDiscount_col] = np.select(conditions, values, default=np.nan)
+    return csvFile
+
+def createCustomerValueCSV(csvFile, category_list, value_list):
+    ''' 
+        A function that creates a new column in the DataFrame of product value
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: altered DataFame
+    '''
+    productValue = "CustomerValue"
+    category_col = "Category"
+    # create a list of conditions 
+    for i in range(len(category_list)):
+        #condition = [
+        #    csvFile[category_col] == category_list[i]
+        #]
+        # create a list of the valyes we want to assign for each condition
+        #value = [value_list[i]]
+        # Update values in the 'productValue' column based on the condition
+        csvFile.loc[csvFile[category_col] == category_list[i], productValue] = value_list[i]
+        #csvFile[productValue] = np.where(condition, value, csvFile[productValue])
+
+    return csvFile
+
+
+def customerValueCSV(csvFile, budget):
+    ''' 
+        A collects the data to creates a new column in the DataFrame of product value, then calls the function that dose it
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: altered DataFame
+    '''
+    # obtain all categoy of products in the budget
+    category_col = "Category"
+    unique_categories = list(csvFile[category_col].unique())
+    print("There are "+str(len(unique_categories))+" categories of products in your budget.")
+    # present the categories to the user
+    print("The "+str(len(unique_categories))+" categories are:")
+    for i in range(len(unique_categories)):
+        print("\t"+unique_categories[i])
+    # obtain the customer percived value per category
+    print("Please input a unique ranking [1, "+str(len(unique_categories))+"] meaning [I don't like, I like] for each category:")
+    unique_category_values = []
+    for i in range(len(unique_categories)):
+        value = input(unique_categories[i]+" :")
+        # store the value
+        unique_category_values.append(int(value))
+    # create new column of data with value info
+    csvFile = createCustomerValueCSV(csvFile, unique_categories, unique_category_values)
+    return csvFile
 
 def main():
     # do like a while loop, while not done shopping or something
@@ -140,11 +204,20 @@ def main():
     my_csv = getCSVFile(file_path)
     # convert relevant columns from cents to dollars
     my_csv = convertCSVCenttoDollar(my_csv)
-    # get the budget of the user and sort for relavent products
-    customer_csv = productsInBudgetCSV(my_csv)
-    # perfrom price optimization on discount percentage and add info to a new column
-    customer_csv = optimizedDiscountCSV(customer_csv)
-
+    # start shopping
+    shopping = True
+    while shopping:
+        # get the budget of the user and sort for relavent products
+        customer_csv, customer_budget = productsInBudgetCSV(my_csv)
+        # perfrom price optimization on discount percentage and add info to a new column
+        customer_csv = optimizedDiscountCSV(customer_csv, customer_budget)
+        # get the percieved value for each product from the customer
+        customer_csv = customerValueCSV(customer_csv, customer_budget)
+        customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=True)
+        # end shopping
+        shopping = False
+    # exit program
+    print("Good bye")
 
     # set the value to each product. 1. Ask the customer to rank their desired product category. Price range of prodcuts for that category
     # this will get the value for us.  Set the values
