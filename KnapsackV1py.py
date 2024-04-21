@@ -136,15 +136,17 @@ def optimizedDiscountCSV(csvFile, budget):
     MRP_col = "MRPNum"
     OPTDiscount_col = "inBudgetPrice"
     # create a list of conditions 
-    conditions = [
-        csvFile[MRP_col] <= budget,
-        csvFile[MRP_col] > budget
-    ]
+    #conditions = [
+    #    csvFile[MRP_col] <= budget,
+    #    csvFile[MRP_col] > budget
+    #]
     # create a list of the valyes we want to assign for each condition
     # if already in budget, keep the price, else, make it the max budget
-    values = [csvFile[MRP_col], budget]
+   # values = [csvFile[MRP_col], budget]
     # perfom cents to dollar conversion on column of data
-    csvFile[OPTDiscount_col] = np.select(conditions, values, default=np.nan)
+    #csvFile[OPTDiscount_col] = np.select(conditions, values, default=np.nan)
+    csvFile.loc[csvFile[MRP_col] <= budget, OPTDiscount_col] = csvFile[MRP_col]
+    csvFile.loc[csvFile[MRP_col] > budget, OPTDiscount_col] = budget
     return csvFile
 
 def createCustomerValueCSV(csvFile, category_list, value_list):
