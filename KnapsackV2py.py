@@ -220,6 +220,7 @@ def knapSack(csvFile, capacity):
         inputs: name of .csv file in current directory
         output: 
     '''
+    capacity = int(capacity)
     # get values
     productValue = "CustomerValue"
     values = list(csvFile[productValue])
@@ -228,26 +229,30 @@ def knapSack(csvFile, capacity):
     prices = list(csvFile[OPTDiscount_col])
     # get the number of products
     n = len(values)
-    #TODO it might be a problem setting everything to zero
-    rows = n + 1
-    capacity = int(capacity)
-    cols = capacity + 1
-    kanp_2d = np.full((int(rows), int(cols)), 0, dtype=int)
+    rows = n
+    cols = capacity
+
+    #begin making 2d array
+    knap_2d = []
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            row.append(0)
+        knap_2d.append(row)
+        
     # begin dp bottom up
     # start one past the begining
-    for i in range(1, n):
+    for i in range(1, rows):
         # j represents the current budget capacity
-        for j in range(1, capacity):
-            kanp_2d[i][j] = kanp_2d[i-1][j]
+        for j in range(1, cols):
+            knap_2d[i][j] = knap_2d[i-1][j]
             # if the current budget is >= current product price
             # and 
             # value of this combinaiton is less than previous + next item
-            if ((j >= prices[i]) and (kanp_2d[i][j] < (kanp_2d[i-1][j-1] + values[i]))):
-                kanp_2d[i][j] = kanp_2d[i-1][j-1] + values[i]
+            if ((j >= prices[i]) and (knap_2d[i][j] < (knap_2d[i-1][j-1] + values[i]))):
+                knap_2d[i][j] = knap_2d[i-1][j-1] + values[i]
     # done loop
-    print(kanp_2d[rows - 1][cols - 1])
-
-
+    print(knap_2d[rows - 1][cols - 1])
 
 
 def main():
