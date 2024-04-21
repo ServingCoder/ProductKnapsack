@@ -6,6 +6,8 @@ import os
 import pandas as pd
 # use numpy select with numpy library
 import numpy as np
+# round numbers with standard math library
+import math as math
 
 def learningPandasTest(csv_file):
     ''' 
@@ -77,6 +79,30 @@ def centsToDollars(value):
     value = value/100
     return value
 
+def floatToInt(value):
+    ''' 
+        A function that converts a singluar piece of data from float type to ceiling integer
+        inputs: value, the value being converted
+        output: value, the convereted value
+    '''
+    value = int(math.ceil(value))
+    return value
+
+def convertCSVFloattoInt(csvFile):
+    ''' 
+    A function what changes column inBudgetPrice from folat type to Int.
+    Outstanding task: implement this function so it's not hard coded.
+    inputs: name of .csv file in current directory
+    output: altered DataFame
+    '''
+    # specify the Sell Price column with applied discounts
+    OPTDiscount_col = "inBudgetPrice"
+    productValue = "CustomerValue"
+    # perfom cents to dollar conversion on column of data
+    csvFile[OPTDiscount_col] = csvFile[OPTDiscount_col].apply(floatToInt)
+    csvFile[productValue] = csvFile[OPTDiscount_col].apply(floatToInt)
+    return csvFile
+
 def getCSVFile(path):
     ''' 
         A function returns the pandas DataFile of the provided CSV file
@@ -96,9 +122,9 @@ def convertCSVCenttoDollar(csvFile):
     MRP_col = "MRPNum"
     Discount_col = "SellPrice"
     # perfom cents to dollar conversion on column of data
-    csvFile[MRP_col] = centsToDollarsCSV(csvFile, MRP_col)
+    csvFile[MRP_col] = csvFile[MRP_col].apply(centsToDollars)
     # perfom cents to dollar conversion on column of data
-    csvFile[Discount_col] = centsToDollarsCSV(csvFile, Discount_col)
+    csvFile[Discount_col] = csvFile[Discount_col].apply(centsToDollars)
     return csvFile
 
 def productsInBudgetCSV(csvFile):
@@ -160,7 +186,7 @@ def createCustomerValueCSV(csvFile, category_list, value_list):
     return csvFile
 
 
-def customerValueCSV(csvFile, budget):
+def customerValueCSV(csvFile):
     ''' 
         A collects the data to creates a new column in the DataFrame of product value, then calls the function that dose it
         Outstanding task: implement this function so it's not hard coded.
@@ -176,7 +202,7 @@ def customerValueCSV(csvFile, budget):
     for i in range(len(unique_categories)):
         print("\t"+unique_categories[i])
     # obtain the customer percived value per category
-    print("Please input a unique ranking [1, "+str(len(unique_categories))+"] meaning [I don't like, I like] for each category:")
+    print("Please input a unique ranking from 1 to "+str(len(unique_categories))+", where 1 means 'I don't like it', and "+str(len(unique_categories))+" means 'I like it', for each category:")
     unique_category_values = []
     for i in range(len(unique_categories)):
         value = input(unique_categories[i]+" :")
@@ -185,6 +211,44 @@ def customerValueCSV(csvFile, budget):
     # create new column of data with value info
     csvFile = createCustomerValueCSV(csvFile, unique_categories, unique_category_values)
     return csvFile
+
+def knapSack(csvFile, capacity):
+    ''' 
+        Perform the integral knapSack algorithm on the products that meet the customer requirements.
+        Maximize value given the shopping bag capacity and price of products
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: name of .csv file in current directory
+        output: 
+    '''
+    # get values
+    productValue = "CustomerValue"
+    values = list(csvFile[productValue])
+    # get prices of each product
+    OPTDiscount_col = "inBudgetPrice"
+    prices = list(csvFile[OPTDiscount_col])
+    # get the number of products
+    n = len(values)
+    #TODO it might be a problem setting everything to zero
+    rows = n + 1
+    capacity = int(capacity)
+    cols = capacity + 1
+    kanp_2d = np.full((int(rows), int(cols)), 0, dtype=int)
+    # begin dp bottom up
+    # start one past the begining
+    for i in range(1, n):
+        # j represents the current budget capacity
+        for j in range(1, capacity):
+            kanp_2d[i][j] = kanp_2d[i-1][j]
+            # if the current budget is >= current product price
+            # and 
+            # value of this combinaiton is less than previous + next item
+            if ((j >= prices[i]) and (kanp_2d[i][j] < (kanp_2d[i-1][j-1] + values[i]))):
+                kanp_2d[i][j] = kanp_2d[i-1][j-1] + values[i]
+    # done loop
+    print(kanp_2d[rows - 1][cols - 1])
+
+
+
 
 def main():
     # do like a while loop, while not done shopping or something
@@ -202,17 +266,18 @@ def main():
         # perfrom price optimization on discount percentage and add info to a new column
         customer_csv = optimizedDiscountCSV(customer_csv, customer_budget)
         # get the percieved value for each product from the customer
-        customer_csv = customerValueCSV(customer_csv, customer_budget)
-        customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=True)
+        customer_csv = customerValueCSV(customer_csv)
+        # convert inBudgetPrice column into whole integers to prepare for KnapSack
+        customer_csv = convertCSVFloattoInt(customer_csv)
+        # perfrom DP integral KnapSack
+        knapSack(customer_csv, customer_budget)
+        #customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=True)
         # end shopping
         shopping = False
     # exit program
     print("Good bye")
 
-    # set the value to each product. 1. Ask the customer to rank their desired product category. Price range of prodcuts for that category
-    # this will get the value for us.  Set the values
-    # then get budget of the customer
-    # Perfrom DP integral KnapSack. 
+    
     # (next version, get knapscack running first)1st prodcut %80 of budget, then other smaller items?
     # just see what knapSack gives back?
 
