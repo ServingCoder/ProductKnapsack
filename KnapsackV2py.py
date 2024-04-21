@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 # round numbers with standard math library
 import math as math
+# create random permutations with random library
+import random as rd
 
 def learningPandasTest(csv_file):
     ''' 
@@ -204,15 +206,22 @@ def customerValueCSV(csvFile):
     # obtain the customer percived value per category
     print("Please input a unique ranking from 1 to "+str(len(unique_categories))+", where 1 means 'I don't like it', and "+str(len(unique_categories))+" means 'I like it', for each category:")
     unique_category_values = []
-    for i in range(len(unique_categories)):
-        value = input(unique_categories[i]+" :")
-        # store the value
-        unique_category_values.append(int(value))
+    # get user input:
+    #for i in range(len(unique_categories)):
+    #    value = input(unique_categories[i]+" :")
+    #    # store the value
+     #   unique_category_values.append(int(value))
+    
+    # or create a random permutation
+
+    numbers = list(range(1, len(unique_categories) + 1))
+    rd.shuffle(numbers)
+    unique_category_values = numbers
     # create new column of data with value info
     csvFile = createCustomerValueCSV(csvFile, unique_categories, unique_category_values)
     return csvFile
 
-def knapSack(csvFile, capacity):
+def knapSack(values, prices, rows, cols):
     ''' 
         Perform the integral knapSack algorithm on the products that meet the customer requirements.
         Maximize value given the shopping bag capacity and price of products
@@ -220,19 +229,19 @@ def knapSack(csvFile, capacity):
         inputs: name of .csv file in current directory
         output: 
     '''
-    capacity = int(capacity)
-    # get values
-    productValue = "CustomerValue"
-    values = list(csvFile[productValue])
-    # get prices of each product
-    OPTDiscount_col = "inBudgetPrice"
-    prices = list(csvFile[OPTDiscount_col])
-    # get the number of products
-    n = len(values)
-    rows = n
-    cols = capacity
+    # capacity = int(capacity)
+    # # get values
+    # productValue = "CustomerValue"
+    # values = list(csvFile[productValue])
+    # # get prices of each product
+    # OPTDiscount_col = "inBudgetPrice"
+    # prices = list(csvFile[OPTDiscount_col])
+    # # get the number of products
+    # n = len(values)
+    # rows = n
+    # cols = capacity
 
-    #begin making 2d array
+    #begin making 2d array full of zeros
     knap_2d = []
     for i in range(rows):
         row = []
@@ -243,7 +252,7 @@ def knapSack(csvFile, capacity):
     # begin dp bottom up
     # start one past the begining
     for i in range(1, rows):
-        # j represents the current budget capacity
+        # j represents the current budget capacity, cols inherenty represents the capacity
         for j in range(1, cols):
             knap_2d[i][j] = knap_2d[i-1][j]
             # if the current budget is >= current product price
@@ -254,6 +263,47 @@ def knapSack(csvFile, capacity):
     # done loop
     print(knap_2d[rows - 1][cols - 1])
 
+def SA():
+    '''
+    C, S, v, opt
+        Perform the SA algorithm on the products that meet the customer requirements.
+        Maximize value given the shopping bag capacity and price of products
+        Outstanding task: implement this function so it's not hard coded.
+        inputs: C set of candidates
+                S, a subset of C that are solutions
+                v, objective function mapping a candidate to a real value
+                opt, type of optimization, a min or max. We are a max
+        output: 
+
+    '''
+    # if all combinations candidates are <= capcity, then we will have 
+    # a pure-optimization problem
+
+    #1. start with an arbitrary candidate (e.g., queens are randomly placed on the grid) and we greedily improve
+    #the initial candidate. 
+
+    # we allow any soution where the capacity is respected
+    # a neighbor are any possible inclusion or removal of an obtject
+    rnd = np.random.RandomState(5)
+    print(rnd)
+
+# heuristic is value of current bag?
+    
+def h_SA(pack_combination, values, prices, capacity):
+    '''
+    the function that calcuates the heuristic for SA
+    '''
+    # total value and size of a specified packing
+    v = 0.0  # total valu of packing
+    s = 0.0  # total size of packing
+    n = len(packing)
+    for i in range(n):
+    if packing[i] == 1:
+        v += valus[i]
+        s += sizes[i]
+    if s > max_size:  # too big to fit in knapsack
+    v = 0.0
+    return (v, s)
 
 def main():
     # do like a while loop, while not done shopping or something
@@ -274,8 +324,29 @@ def main():
         customer_csv = customerValueCSV(customer_csv)
         # convert inBudgetPrice column into whole integers to prepare for KnapSack
         customer_csv = convertCSVFloattoInt(customer_csv)
-        # perfrom DP integral KnapSack
-        knapSack(customer_csv, customer_budget)
+        # prepare for DP KnapSack:
+        #       get values
+        productValue = "CustomerValue"
+        values = list(customer_csv[productValue])
+        #       get prices of each product
+        OPTDiscount_col = "inBudgetPrice"
+        prices = list(customer_csv[OPTDiscount_col])
+        #       get the number of products
+        rows = len(values)
+        #       get the total capacity as integer for table
+        cols = int(customer_budget)
+        #       perfrom DP integral KnapSack
+        knapSack(values, prices, rows, cols)
+        # perpare for Simulated Annealing:
+        #       create a heuristic function
+        h = 
+        rnd = np.random.RandomState(5)  # 3 .98 = 117,100
+        max_iter = 1000
+        init_temperature = 10000.0
+        alpha = 1.0
+        epsilon = 0.05
+        beta = 5
+        SA(customer_csv, customer_budget)
         #customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=True)
         # end shopping
         shopping = False
