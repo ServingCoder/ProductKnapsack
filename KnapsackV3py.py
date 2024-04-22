@@ -269,18 +269,6 @@ def knapSack(values, prices, rows, cols):
         inputs: name of .csv file in current directory
         output: 
     '''
-    # capacity = int(capacity)
-    # # get values
-    # productValue = "CustomerValue"
-    # values = list(csvFile[productValue])
-    # # get prices of each product
-    # OPTDiscount_col = "inBudgetPrice"
-    # prices = list(csvFile[OPTDiscount_col])
-    # # get the number of products
-    # n = len(values)
-    # rows = n
-    # cols = capacity
-
     #begin making 2d array full of zeros
     knap_2d = []
     for i in range(rows):
@@ -301,7 +289,20 @@ def knapSack(values, prices, rows, cols):
             if ((j >= prices[i]) and (knap_2d[i][j] < (knap_2d[i-1][j-1] + values[i]))):
                 knap_2d[i][j] = knap_2d[i-1][j-1] + values[i]
     # done loop
-    return knap_2d[rows - 1][cols - 1]
+    #edit items in place, pass by reference
+    items = []
+    printOutKnapSack(knap_2d, rows-1, cols-1, items)          
+    #print out the knapSack
+    return knap_2d[rows - 1][cols - 1], items
+
+def printOutKnapSack(A, i, D, items):
+    if (i>0) or (D>0):
+        if A[i,D] == A[i-1,D]:
+            printOutKnapSack(A, i-1, D, items)
+        else:
+            printOutKnapSack(A, i-1, D-1, items)
+            items.append(i)
+    return 
 
 def SA(values, prices, heur, temp, beta, alpha, epsilon, capacity, rnd):
     '''
@@ -317,15 +318,7 @@ def SA(values, prices, heur, temp, beta, alpha, epsilon, capacity, rnd):
     '''
     i = 0
     # create the first candidate, all 0's
-    pack_combination = [0]*len(values)
-    if sum(pack_combination) != 0:
-        print("sum not zero")
-    # for _ in range(1):
-    #     i = rnd.randint(0,len(values) -1)
-    #     pack_combination[i] = 1
-        #print(pack_combination)
-    #c = adjacent(pack_combination, rnd)
-    c = pack_combination
+    c = [0]*len(values)
     best = c
     while True:
         c_next = adjacent(c, rnd)
@@ -355,7 +348,7 @@ def SA(values, prices, heur, temp, beta, alpha, epsilon, capacity, rnd):
                 for i in range(len(best)):
                     if best[i] == 1:
                         max_value += values[i]
-            return max_value
+            return max_value, best
 
 def adjacent(pack_combination, rnd):
     ''' 
@@ -453,7 +446,7 @@ def main():
     values_time_SA = []
 
     # run the test 100 times
-    for _ in range(100):
+    for _ in range(2):
         # get the budget of the user and sort for relavent products
         customer_csv, customer_budget = productsInBudgetCSV(my_csv)
         # perfrom price optimization on discount percentage and add info to a new column
@@ -478,7 +471,7 @@ def main():
         cols = int(customer_budget)
         #       perfrom DP integral KnapSack
         start = perf_counter()
-        max_value = knapSack(values, prices, rows, cols)
+        max_value, knapSackResultDPK = knapSack(values, prices, rows, cols)
         stop = perf_counter()
         runtimeDPK= stop - start
         running_time_DPK.append(runtimeDPK)
@@ -500,16 +493,16 @@ def main():
         epsilon = 0.005
         #       perfrom Simulated Annealing.
         start = perf_counter()
-        max_value = SA(values, prices, heuristic, init_temperature, beta, alpha, epsilon, int(customer_budget), rnd)
+        max_value, knapSackResultSA = SA(values, prices, heuristic, init_temperature, beta, alpha, epsilon, int(customer_budget), rnd)
         stop = perf_counter()
         runtimeSA= stop - start
         running_time_SA.append(runtimeSA)
         values_time_SA.append(max_value)
         #print("max value of shooping bag given budget by SA: ", max_value)
 
-    plotter = PlotResults()
-    plotter.plot_results(running_time_DPK, running_time_SA, "Running Time Dynamic Programming Bottom-Up KnapSack", "Running Time Simulated Annealing KnapSack", "running_time")
-    plotter.plot_results(values_DPK, values_time_SA, "KnapSack Value with Dynamic Programming Bottom-Up Approach", "KnapSack Value with Simulated Annealing Approach", "knapsack_value")
+    #plotter = PlotResults()
+    #plotter.plot_results(running_time_DPK, running_time_SA, "Running Time Dynamic Programming Bottom-Up KnapSack", "Running Time Simulated Annealing KnapSack", "running_time")
+    #plotter.plot_results(values_DPK, values_time_SA, "KnapSack Value with Dynamic Programming Bottom-Up Approach", "KnapSack Value with Simulated Annealing Approach", "knapsack_value")
 
     # exit program
     print("Good bye")

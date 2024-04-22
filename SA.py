@@ -71,8 +71,7 @@ def solve(n_items, rnd, valus, sizes, max_size, \
 
     if iteration % interval == 0:
       print("iter = %6d : curr value = %7.0f : \
-        curr temp = %10.2f " \
-        % (iteration, curr_valu, curr_temperature))
+        curr temp = %10.2f " % (iteration, curr_valu, curr_temperature))
 
     if curr_temperature > 0.00001:
       curr_temperature = 0.00001
