@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 class PlotResults:
     """
-    Class to plot the results.  Taken from Assignment 4
+    Class to plot the results.  Taken from Assignment 4 CMPUT 366
     """
     def plot_results(self, data1, data2, label1, label2, filename):
         """
@@ -49,32 +49,6 @@ class PlotResults:
         plt.grid()
         plt.savefig(filename)
 
-def learningPandasTest(csv_file):
-    ''' 
-        A function that demos basic Pandas functions for changing data
-        inputs: csv_file, a csv file
-               columns_of_intrest: an array of strings coresponding to the names of the
-                                   columns you want to run the test on
-        outputs: none, operations done in place
-    '''
-    sub_csv = csv_file
-    getTop10(sub_csv)
-    getInfo(sub_csv)
-    print('-----------------')
-    print('Altering our dataset')
-    sub_csv.loc[[1,3,5], 'MRPNum'] = 'missing'
-    getTop10(sub_csv)
-    getInfo(sub_csv)
-    print('-----------------')
-    print('Convert the word "missing" back to a number')
-    # catch the errors with coerce
-    sub_csv['MRPNum'] = pd.to_numeric(sub_csv['MRPNum'], errors='coerce')
-    getTop10(sub_csv)
-    getInfo(sub_csv)
-    # side note, you can also ask to downcast to smallest type using to_numeric
-    # you can gain performance by storing a float32 instead of float64
-    # especially when working with large datasets
-
 def getInfo(csv_file):
     ''' 
         A function that prints the data types of your dataset
@@ -102,11 +76,7 @@ def centsToDollarsCSV(csv_file, convert_column):
         columns_of_intrest: an array of strings coresponding to the names of the
                                    columns you want to run the conversion on
     '''
-    # note: working with series means changing on a per column basis
-    #       working on a dataset means you change the whole thing
-    #       a column in a dataFrame is a pandasSeries object
     sub_csv = csv_file[convert_column]
-    # you do not need to call centsToDollars(), remove brakets
     sub_csv = sub_csv.apply(centsToDollars)
     return sub_csv
 
@@ -140,7 +110,7 @@ def convertCSVFloattoInt(csvFile):
     productValue = "CustomerValue"
     # perfom cents to dollar conversion on column of data
     csvFile[OPTDiscount_col] = csvFile[OPTDiscount_col].apply(floatToInt)
-    csvFile[productValue] = csvFile[OPTDiscount_col].apply(floatToInt)
+    csvFile[productValue] = csvFile[productValue].apply(floatToInt)
     return csvFile
 
 def getCSVFile(path):
@@ -175,16 +145,13 @@ def productsInBudgetCSV(csvFile):
         output: altered DataFame
     '''
     # obtain budget from the user
-    #budget = float(input("Type in your budget i.e 30: "))
-    # consumer has a budget from 1 -100
-    budget = rd.uniform(1, 200)
+    # consumer has a budget from 1 - 75
+    budget = rd.uniform(1, 75)
     # specify the Sell Price column to compare discounts
     MRP_col = "MRPNum"
     Discount_col = "SellPrice"
     # collect all products that are normally in the budget, or that after applying the max possible discount they are within the budget
     in_budget_products = csvFile[(csvFile[MRP_col] <= budget) | (csvFile[Discount_col] < budget)]
-    # save to a new csv file
-    #in_budget_products.to_csv('FashionDatasetChanged.csv', header=True, index=True)
     return in_budget_products, budget
 
 def optimizedDiscountCSV(csvFile, budget):
@@ -194,9 +161,9 @@ def optimizedDiscountCSV(csvFile, budget):
         inputs: name of .csv file in current directory
         output: altered DataFame
     '''
-    # Given in_budget_products
-    #       Make a new PriceCol if Price is already over Budget
-    #       if SellPrice = MRP(DiscountPercentOff)
+    # The math:
+    #       if Price is already over Budget
+    #       SellPrice = MRP(DiscountPercentOff)
     #       then Budget/MRP = OPTDiscountPercentOff
     #       and KnapSackPrice = MRP*OPTDiscountPercentOff
     #       but then all KnapSackPrices will be the budget price
@@ -208,7 +175,6 @@ def optimizedDiscountCSV(csvFile, budget):
     MRP_col = "MRPNum"
     csvFile.loc[csvFile[MRP_col] <= budget, OPTDiscount_col] = csvFile[MRP_col]
     csvFile.loc[csvFile[MRP_col] > budget, OPTDiscount_col] = budget
-    #TODO: is this return statement needed?
     return csvFile
 
 def createCustomerValueCSV(csvFile, category_list, value_list):
@@ -224,7 +190,6 @@ def createCustomerValueCSV(csvFile, category_list, value_list):
     category_col = "Category"
     for i in range(len(category_list)):
         csvFile.loc[csvFile[category_col] == category_list[i], productValue] = value_list[i]
-    #TODO: is this return statement needed?
     return csvFile
 
 
@@ -238,22 +203,8 @@ def customerValueCSV(csvFile):
     # obtain all categoy of products in the budget
     category_col = "Category"
     unique_categories = list(csvFile[category_col].unique())
-    #print("There are "+str(len(unique_categories))+" categories of products in your budget.")
-    # present the categories to the user
-    #print("The "+str(len(unique_categories))+" categories are:")
-    for i in range(len(unique_categories)):
-        print("\t"+unique_categories[i])
     # obtain the customer percived value per category
-    #print("Please input a unique ranking from 1 to "+str(len(unique_categories))+", where 1 means 'I don't like it', and "+str(len(unique_categories))+" means 'I like it', for each category:")
     unique_category_values = []
-    # get user input:
-    #for i in range(len(unique_categories)):
-    #    value = input(unique_categories[i]+" :")
-    #    # store the value
-     #   unique_category_values.append(int(value))
-    
-    # or create a random permutation
-
     numbers = list(range(1, len(unique_categories) + 1))
     rd.shuffle(numbers)
     unique_category_values = numbers
@@ -292,10 +243,13 @@ def knapSack(values, prices, rows, cols):
     #edit items in place, pass by reference
     items = []
     #printOutKnapSack(knap_2d, rows-1, cols-1, items)          
-    #print out the knapSack
     return knap_2d[rows - 1][cols - 1], items
 
 def printOutKnapSack(A, i, D, items):
+    ''' 
+        Obtain the list of optimal items after perfroming DP knapsack
+        Outstanding task: recursion depth error, did not use in project submisison
+    '''
     if (i>0) or (D>0):
         if A[i][D] == A[i-1][D]:
             printOutKnapSack(A, i-1, D, items)
@@ -311,9 +265,6 @@ def SA(values, prices, heur, temp, beta, alpha, epsilon, capacity, rnd):
         Maximize value given the shopping bag capacity and price of products
         Outstanding task: implement this function so it's not hard coded.
         inputs: C set of candidates
-                S, a subset of C that are solutions
-                v, objective function mapping a candidate to a real value
-                opt, type of optimization, a min or max. We are a max
         output: 
 
     '''
@@ -437,8 +388,6 @@ def main():
     my_csv = getCSVFile(file_path)
     # convert relevant columns from cents to dollars
     my_csv = convertCSVCenttoDollar(my_csv)
-    # start shopping
-    shopping = True
     # collect the run times in a list
     running_time_DPK = []
     running_time_SA= []
@@ -447,7 +396,7 @@ def main():
     values_time_SA = []
 
     # run the test 100 times
-    for _ in range(2):
+    for _ in range(100):
         # get the budget of the user and sort for relavent products
         customer_csv, customer_budget = productsInBudgetCSV(my_csv)
         # perfrom price optimization on discount percentage and add info to a new column
@@ -457,7 +406,7 @@ def main():
         # convert inBudgetPrice column into whole integers to prepare for KnapSack
         customer_csv = convertCSVFloattoInt(customer_csv)
         # save changes to new csv File for viewing 
-        customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=True)
+        customer_csv.to_csv('FashionDatasetChanged.csv', header=True, index=False)
 
         # prepare for DP KnapSack:
         #       get values
@@ -471,28 +420,24 @@ def main():
         #       get the total capacity as integer for table
         cols = int(customer_budget)
         #       perfrom DP integral KnapSack
+        # sart counter
         start = perf_counter()
         max_value, knapSackResultDPK = knapSack(values, prices, rows, cols)
+        # stop counter
         stop = perf_counter()
+        # find RT
         runtimeDPK= stop - start
+        # save data
         running_time_DPK.append(runtimeDPK)
+        # save results
         values_DPK.append(max_value)
-
-        # print("KnapSack of DP : ")
-        # # Convert index_array to a boolean mask
-        # mask = customer_csv.Series(knapSackResultDPK , index=my_csv.index)
-        # # Filter rows of DataFrame using the mask
-        # filtered_df = customer_csv[mask]
-        # getTop10(filtered_df)
-
-        #print("max value of shooping bag given budget by knapSack: ", max_value)
 
         # perpare for Simulated Annealing:
         #       create a heuristic function
-        #       heuristic()
+        # heuristic() this line is intentionally commented
         #       generat a random number generator
         rnd = np.random.RandomState(int(time.time()))  
-        #       T0
+        #       T-0
         init_temperature = 1000.0
         #       beta
         beta = 5
@@ -501,30 +446,23 @@ def main():
         #       eplison
         epsilon = 0.005
         #       perfrom Simulated Annealing.
+        # start counter
         start = perf_counter()
         max_value, knapSackResultSA = SA(values, prices, heuristic, init_temperature, beta, alpha, epsilon, int(customer_budget), rnd)
+        # stop counter
         stop = perf_counter()
+        # calculate RT
         runtimeSA= stop - start
+        # save data
         running_time_SA.append(runtimeSA)
+        # save results
         values_time_SA.append(max_value)
 
-        # print("KnapSack of SA: ")
-        # # Convert index_array to a boolean mask
-        # mask = pd.Series(knapSackResultSA, index=my_csv.index)
-        # # Filter rows of DataFrame using the mask
-        # filtered_df = customer_csv[mask]
-        # getTop10(filtered_df)
-        #print("max value of shooping bag given budget by SA: ", max_value)
-
-    #plotter = PlotResults()
-    #plotter.plot_results(running_time_DPK, running_time_SA, "Running Time Dynamic Programming Bottom-Up KnapSack", "Running Time Simulated Annealing KnapSack", "running_time")
-    #plotter.plot_results(values_DPK, values_time_SA, "KnapSack Value with Dynamic Programming Bottom-Up Approach", "KnapSack Value with Simulated Annealing Approach", "knapsack_value")
+    plotter = PlotResults()
+    plotter.plot_results(running_time_DPK, running_time_SA, "Running Time Dynamic Programming Bottom-Up KnapSack", "Running Time Simulated Annealing KnapSack", "running_time")
+    plotter.plot_results(values_DPK, values_time_SA, "KnapSack Value with Dynamic Programming Bottom-Up Approach", "KnapSack Value with Simulated Annealing Approach", "knapsack_value")
 
     # exit program
     print("Good bye")
-
-    
-    # (next version, get knapscack running first)1st prodcut %80 of budget, then other smaller items?
-    # just see what knapSack gives back?
 
 main()
