@@ -291,17 +291,18 @@ def knapSack(values, prices, rows, cols):
     # done loop
     #edit items in place, pass by reference
     items = []
-    printOutKnapSack(knap_2d, rows-1, cols-1, items)          
+    #printOutKnapSack(knap_2d, rows-1, cols-1, items)          
     #print out the knapSack
     return knap_2d[rows - 1][cols - 1], items
 
 def printOutKnapSack(A, i, D, items):
     if (i>0) or (D>0):
-        if A[i,D] == A[i-1,D]:
+        if A[i][D] == A[i-1][D]:
             printOutKnapSack(A, i-1, D, items)
+            items.append(0)
         else:
             printOutKnapSack(A, i-1, D-1, items)
-            items.append(i)
+            items.append(1)
     return 
 
 def SA(values, prices, heur, temp, beta, alpha, epsilon, capacity, rnd):
@@ -476,6 +477,14 @@ def main():
         runtimeDPK= stop - start
         running_time_DPK.append(runtimeDPK)
         values_DPK.append(max_value)
+
+        # print("KnapSack of DP : ")
+        # # Convert index_array to a boolean mask
+        # mask = customer_csv.Series(knapSackResultDPK , index=my_csv.index)
+        # # Filter rows of DataFrame using the mask
+        # filtered_df = customer_csv[mask]
+        # getTop10(filtered_df)
+
         #print("max value of shooping bag given budget by knapSack: ", max_value)
 
         # perpare for Simulated Annealing:
@@ -498,6 +507,13 @@ def main():
         runtimeSA= stop - start
         running_time_SA.append(runtimeSA)
         values_time_SA.append(max_value)
+
+        # print("KnapSack of SA: ")
+        # # Convert index_array to a boolean mask
+        # mask = pd.Series(knapSackResultSA, index=my_csv.index)
+        # # Filter rows of DataFrame using the mask
+        # filtered_df = customer_csv[mask]
+        # getTop10(filtered_df)
         #print("max value of shooping bag given budget by SA: ", max_value)
 
     #plotter = PlotResults()
